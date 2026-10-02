@@ -1,0 +1,7 @@
+# clasp stores the Google login on this machine. Never commit it.
+.clasprc.json
+.clasprc.json.bak
+.clasp.json
+
+node_modules/
+.env
