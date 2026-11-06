@@ -62,7 +62,7 @@ function resolveSharedDrive(runtime) {
  */
 function pageIdQuery(runtime, pageId) {
   return (
-    "appProperties has { key='notionPageId' and value='" +
+    "appProperties has { key='capsulePartyId' and value='" +
     escapeDriveQueryValue(pageId) +
     "' } and mimeType = 'application/vnd.google-apps.folder' and '" +
     escapeDriveQueryValue(runtime.parentFolderId) +
@@ -102,10 +102,10 @@ function childrenQuery(folderId) {
  * @returns {string}
  */
 function linkedPageId(folder) {
-  if (!folder || !folder.appProperties || !folder.appProperties.notionPageId) {
+  if (!folder || !folder.appProperties || !folder.appProperties.capsulePartyId) {
     return '';
   }
-  return String(folder.appProperties.notionPageId);
+  return String(folder.appProperties.capsulePartyId);
 }
 
 /**
@@ -206,16 +206,16 @@ function createOrganisationFolder(runtime, folderName, pageId) {
     name: folderName,
     mimeType: 'application/vnd.google-apps.folder',
     parents: [runtime.parentFolderId],
-    description: 'notionPageId: ' + pageId,
+    description: 'capsulePartyId: ' + pageId,
     appProperties: {
-      notionPageId: pageId,
+      capsulePartyId: pageId,
       provisionedBy: 'crm-setup',
     },
   });
 }
 
 /**
- * Subfolders do not store the Notion page ID. A later search by that ID
+ * Subfolders do not store the Capsule record ID. A later search by that ID
  * must find the organisation folder, not a child folder.
  * @param {string} parentId
  * @param {string} name
@@ -255,7 +255,7 @@ function locateOrCreateOrganisationFolder(runtime, page) {
       return {
         action: 'error',
         message:
-          'The Drive folder ID on this record is not linked to this Notion page. No folder was created. Clear Drive folder ID only when you mean to provision a new one, then set Drive provisioning back to Ready.',
+          'The Drive folder ID on this record is not linked to this Capsule record. No folder was created. Clear Drive folder ID only when you mean to provision a new one, then set Drive provisioning back to Ready.',
       };
     }
     return { action: 'ready', folderId: stored.id };
@@ -266,7 +266,7 @@ function locateOrCreateOrganisationFolder(runtime, page) {
     return {
       action: 'error',
       message:
-        'More than one Drive folder is already linked to this Notion page. No new folder was created.',
+        'More than one Drive folder is already linked to this Capsule record. No new folder was created.',
     };
   }
   if (byId.length === 1) {
@@ -284,7 +284,7 @@ function locateOrCreateOrganisationFolder(runtime, page) {
     return {
       action: 'error',
       message:
-        'More than one Drive folder is already linked to this Notion page. No new folder was created.',
+        'More than one Drive folder is already linked to this Capsule record. No new folder was created.',
     };
   }
   if (byName.length) {

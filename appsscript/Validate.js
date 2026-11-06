@@ -1,69 +1,4 @@
-// Pure checks. This file does not call Notion or Drive, so Node can test it.
-
-/**
- * Reads a Notion property into a plain string. Unknown types count as empty
- * so a required field of an unsupported type does not slip through.
- * @param {Object|undefined} property A Notion property object.
- * @returns {string}
- */
-function propertyText(property) {
-  if (!property || !property.type) {
-    return '';
-  }
-  if (property.type === 'title' || property.type === 'rich_text') {
-    var items = property[property.type] || [];
-    return items
-      .map(function (item) {
-        return item.plain_text || '';
-      })
-      .join('')
-      .trim();
-  }
-  if (property.type === 'select' || property.type === 'status') {
-    var chosen = property[property.type];
-    return chosen && chosen.name ? String(chosen.name).trim() : '';
-  }
-  if (property.type === 'number') {
-    return property.number === null || property.number === undefined
-      ? ''
-      : String(property.number);
-  }
-  if (property.type === 'url') {
-    return property.url ? String(property.url).trim() : '';
-  }
-  if (property.type === 'email') {
-    return property.email ? String(property.email).trim() : '';
-  }
-  if (property.type === 'checkbox') {
-    return property.checkbox ? 'true' : '';
-  }
-  if (property.type === 'date') {
-    return property.date && property.date.start ? String(property.date.start) : '';
-  }
-  return '';
-}
-
-/**
- * Turns a Notion page into the small object the rest of the script uses.
- * Relationship status is not copied, even if that property exists on the page.
- * @param {Object} apiPage
- * @param {Object} config
- * @returns {{id: string, name: string, status: string, folderId: string, properties: Object<string, string>}}
- */
-function normalizeNotionPage(apiPage, config) {
-  var props = (apiPage && apiPage.properties) || {};
-  var required = {};
-  (config.requiredProperties || []).forEach(function (name) {
-    required[name] = propertyText(props[name]);
-  });
-  return {
-    id: apiPage && apiPage.id ? String(apiPage.id) : '',
-    name: propertyText(props[config.organisationNameProperty]),
-    status: propertyText(props[config.properties.driveProvisioning]),
-    folderId: propertyText(props[config.properties.driveFolderId]),
-    properties: required,
-  };
-}
+// Pure checks. This file does not call Capsule or Drive, so Node can test it.
 
 /**
  * Makes an organisation name safe to use as a Drive folder name.
@@ -89,9 +24,9 @@ function folderNameFromOrganisation(name) {
 }
 
 /**
- * Decides whether one Companies row may get a folder.
+ * Decides whether one Capsule organisation may get a folder.
  * A skip is not a failure: the row is left unchanged.
- * @param {Object} page Result of normalizeNotionPage, plus an optional relationshipStatus field that is ignored.
+ * @param {Object} page Result of normalizeCapsuleParty, plus an optional relationshipStatus field that is ignored.
  * @param {Object} config
  * @returns {{ok: boolean, skip: boolean, reason?: string, errors?: string[], folderName?: string}}
  */
@@ -114,7 +49,7 @@ function validateOrganisation(page, config) {
 
   var errors = [];
   if (!page.id) {
-    errors.push('Notion page ID is missing.');
+    errors.push('Capsule record ID is missing.');
   }
   var naming = folderNameFromOrganisation(page.name);
   if (!naming.ok) {
@@ -155,7 +90,7 @@ function subfolderChildren(entry) {
 }
 
 /**
- * Reasons the whole run must stop before it touches Notion or Drive.
+ * Reasons the whole run must stop before it touches Capsule or Drive.
  * Production IDs are refused in this phase even if every other value is set.
  * @param {Object} runtime
  * @returns {string[]}
@@ -175,7 +110,7 @@ function readinessProblems(runtime) {
   }
   if (!String(settings.organisationNameProperty || '').trim()) {
     problems.push(
-      'Set organisationNameProperty in Config.js to the Companies title property name.'
+      'organisationNameProperty is empty in loadRuntimeConfig (Config.js).'
     );
   }
   if (!String(settings.googleGroupEmail || '').includes('@')) {
@@ -216,8 +151,7 @@ function readinessProblems(runtime) {
 
   // These names must stay the same as SCRIPT_PROPERTY in Config.js.
   [
-    ['notionToken', 'NOTION_TOKEN'],
-    ['notionDataSourceId', 'NOTION_DATA_SOURCE_ID'],
+    ['capsuleToken', 'CAPSULE_TOKEN'],
     ['parentFolderId', 'PARENT_FOLDER_ID'],
   ].forEach(function (pair) {
     if (!String(settings[pair[0]] || '').trim()) {
@@ -229,8 +163,6 @@ function readinessProblems(runtime) {
 
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
-    propertyText: propertyText,
-    normalizeNotionPage: normalizeNotionPage,
     folderNameFromOrganisation: folderNameFromOrganisation,
     subfolderName: subfolderName,
     subfolderChildren: subfolderChildren,

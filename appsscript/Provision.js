@@ -1,4 +1,4 @@
-// Claims one Notion row, creates its folder, and writes the result back.
+// Claims one Capsule row, creates its folder, and writes the result back.
 // One failing row does not stop the others.
 // Relationship status is not read. Changing it does not move or recreate a folder.
 
@@ -12,7 +12,7 @@ function markError(runtime, pageId, message) {
     updatePage(runtime, pageId, buildErrorUpdate(runtime, message));
   } catch (writeError) {
     console.log(
-      'Could not record the Notion error on ' + pageId + ': ' + writeError.message
+      'Could not record the Capsule error on ' + pageId + ': ' + writeError.message
     );
   }
 }
@@ -38,7 +38,7 @@ function markStillInProgress(runtime, pageId, message) {
  * @param {string} pageId
  */
 function provisionOne(runtime, pageId) {
-  var page = normalizeNotionPage(fetchPage(runtime, pageId), runtime);
+  var page = normalizeCapsuleParty(fetchPage(runtime, pageId), runtime);
   var check = validateOrganisation(page, runtime);
   if (check.skip) {
     console.log('Skipped ' + (page.id || pageId) + ': ' + check.reason);
