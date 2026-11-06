@@ -72,7 +72,7 @@ The script adds a note to the organisation that starts with "Drive folder could 
 - A folder with that name already exists: rename or remove the unlinked folder, then set **Ready** again.
 - The Drive folder ID points at the wrong folder: clear **Drive folder ID**, then set **Ready** again.
 
-If a run stops halfway, for example on a Drive timeout, the organisation stays **In progress** and the next run finishes the same folder. This kind of failure is written to the execution log, not to a note.
+If a run stops halfway, for example on a Drive timeout, the organisation stays **In progress** and the next run finishes the same folder. The first time this happens, the script adds a note that starts with "Drive folder is not finished yet". Later retries are written to the execution log only, so a lasting failure does not add a note every five minutes. If an organisation stays **In progress** for more than a few runs, check the execution log.
 
 One failed organisation does not stop the others.
 

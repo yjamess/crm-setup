@@ -242,9 +242,17 @@ describe('Capsule payloads', () => {
     assert.ok(errorUpdate.note.startsWith('Drive folder could not be created: '));
     assert.ok(errorUpdate.note.length < 600);
 
-    const retry = buildRetryUpdate(config, 'Drive timeout');
+    const retry = buildRetryUpdate(config, 'Drive timeout', false);
     assert.equal(retry.status, 'In progress');
     assert.equal(retry.folderId, undefined);
+    assert.equal(retry.note, null);
+  });
+
+  it('adds a note on the first Drive failure only', () => {
+    const first = buildRetryUpdate(config, 'Drive timeout', true);
+    assert.equal(first.status, 'In progress');
+    assert.ok(first.note.startsWith('Drive folder is not finished yet: Drive timeout'));
+    assert.equal(buildRetryUpdate(config, 'Drive timeout', false).note, null);
   });
 });
 

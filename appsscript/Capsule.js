@@ -112,7 +112,21 @@ function buildProvisionedUpdate(runtime, folderId) {
   u.status = runtime.status.provisioned;
   return u;
 }
-function buildRetryUpdate(runtime, message) { return { status: runtime.status.inProgress, note: null, log: message }; }
+/**
+ * Keeps the organisation In progress so the next run retries it.
+ * firstFailure adds one note; later retries only log, so a lasting
+ * failure does not add a note every five minutes.
+ */
+function buildRetryUpdate(runtime, message, firstFailure) {
+  return {
+    status: runtime.status.inProgress,
+    note: firstFailure
+      ? 'Drive folder is not finished yet: ' + truncateMessage(message) +
+        ' The script will keep retrying every five minutes. If this does not clear, check the Apps Script execution log.'
+      : null,
+    log: message,
+  };
+}
 function buildErrorUpdate(runtime, message) {
   return { status: runtime.status.error, note: 'Drive folder could not be created: ' + truncateMessage(message) };
 }

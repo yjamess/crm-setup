@@ -22,10 +22,11 @@ function markError(runtime, pageId, message) {
  * @param {Object} runtime
  * @param {string} pageId
  * @param {string} message
+ * @param {boolean} firstFailure True when the run started from Ready, not In progress.
  */
-function markStillInProgress(runtime, pageId, message) {
+function markStillInProgress(runtime, pageId, message, firstFailure) {
   try {
-    updatePage(runtime, pageId, buildRetryUpdate(runtime, message));
+    updatePage(runtime, pageId, buildRetryUpdate(runtime, message, firstFailure));
   } catch (writeError) {
     console.log(
       'Could not record the Drive error on ' + pageId + ': ' + writeError.message
@@ -98,7 +99,14 @@ function provisionAll(runtime) {
         provisionOne(runtime, pageId);
       } catch (err) {
         console.log('Provisioning failed for ' + pageId + ': ' + err.message);
-        markStillInProgress(runtime, pageId, err.message);
+        // A row already In progress when this run started has had its note.
+        var startStatus = normalizeCapsuleParty(candidate, runtime).status;
+        markStillInProgress(
+          runtime,
+          pageId,
+          err.message,
+          startStatus !== runtime.status.inProgress
+        );
       }
     });
   } finally {
